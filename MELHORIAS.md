@@ -9,11 +9,9 @@
 - Filtros por tipo, status, categoria e busca por descrição.
 - Totais de receitas recebidas, receitas pendentes, despesas pendentes, saldo realizado e percentual de despesas pagas.
 - Saldos agrupados por categoria no resumo mensal.
-- Aba de gráficos por categoria.
+- Aba de gráficos por categoria com barras e rosca.
 - Status com texto adequado para receita e despesa: receber/recebido e pagar/pago.
 - Registro de criação, atualização e data de pagamento/recebimento.
-- Marcação em lote de despesas selecionadas como pagas.
-- Exportação CSV dos registros filtrados do mês.
 - Mensagens de sucesso e erro na tela em vez de alertas para operações principais.
 - Renderização da tabela sem inserir descrição do usuário como HTML direto.
 - Validação de valor maior que zero no frontend e no backend.

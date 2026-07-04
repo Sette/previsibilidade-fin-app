@@ -442,15 +442,6 @@ const TransactionService = {
     return { success: true };
   },
 
-  setTransactionsStatus: function(ids, status) {
-    if (!Array.isArray(ids) || ids.length === 0) {
-      throw new Error('Selecione pelo menos um registro.');
-    }
-    const normalizedStatus = status === 'PAGO' ? 'PAGO' : 'PENDENTE';
-    const updatedCount = TransactionRepository.setStatusForIds(ids, normalizedStatus);
-    return { success: true, updatedCount: updatedCount };
-  },
-
   /**
    * Aggregates transactions to compute monthly predictability metrics.
    * Normalizes values and sorts the result chronologically in ascending order.
@@ -567,7 +558,6 @@ const TransactionService = {
 function apiAddTransaction(data) { return TransactionService.addTransaction(data); }
 function apiUpdateTransaction(data) { return TransactionService.updateTransaction(data); }
 function apiToggleTransactionStatus(id) { return TransactionService.toggleTransactionStatus(id); }
-function apiSetTransactionsStatus(ids, status) { return TransactionService.setTransactionsStatus(ids, status); }
 function apiDeleteTransaction(id) { return TransactionService.deleteTransaction(id); }
 function apiGetMonthlySummary(year, month) { return TransactionService.getMonthlySummary(year, month); }
 function apiGetCategories() { return CategoryRepository.getAll(); }

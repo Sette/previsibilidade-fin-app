@@ -218,13 +218,13 @@
     button.cancel-btn:hover { background: var(--secondary-hover); }
 
     button.action-btn {
-      min-height: 32px;
-      min-width: 34px;
-      width: 34px;
-      padding: 6px;
-      font-size: 14px;
+      min-height: 28px;
+      min-width: 28px;
+      width: 28px;
+      padding: 0;
+      font-size: 13px;
       border-radius: 6px;
-      margin: 2px 4px 2px 0;
+      margin: 2px 2px 2px 0;
       line-height: 1;
       text-align: center;
     }
@@ -471,6 +471,87 @@
       border-bottom: 0;
     }
 
+    .donut-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    .donut {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: conic-gradient(var(--surface-soft) 0 100%);
+    }
+
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 34px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--table-border);
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .donut-total {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .donut-caption {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .donut-legend {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: var(--primary);
+    }
+
+    .donut-legend-item span:last-child {
+      margin-left: auto;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
     label {
       color: var(--label);
       font-size: 13px;
@@ -506,14 +587,14 @@
 
     table {
       width: 100%;
-      min-width: 860px;
+      min-width: 820px;
       border-collapse: collapse;
     }
 
     th,
     td {
       text-align: left;
-      padding: 13px 14px;
+      padding: 11px 12px;
       border-bottom: 1px solid var(--table-border);
       vertical-align: middle;
     }
@@ -521,9 +602,10 @@
     th {
       background: var(--surface-soft);
       color: var(--label);
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
 
     tbody tr:hover { background: var(--row-hover); }
@@ -547,11 +629,23 @@
     .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
     .type-income { color: var(--success); font-weight: 750; }
     .type-expense { color: var(--danger); font-weight: 750; }
-    .date-cell { color: var(--muted); font-size: 13px; font-weight: 650; }
+    .date-cell { color: var(--muted); font-size: 12px; font-weight: 650; }
     .empty-state { text-align: center; color: var(--muted); padding: 26px 14px; }
     .select-col { width: 46px; }
-    .actions-col { width: 132px; }
+    .actions-col { width: 96px; }
     td[data-label="Ações"] { white-space: nowrap; }
+    td[data-label="Valor"],
+    td[data-label="Data"],
+    td[data-label="Status"],
+    td[data-label="Tipo"] {
+      white-space: nowrap;
+    }
+    td[data-label="Descrição"] {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     @media (max-width: 860px) {
       body {
@@ -567,11 +661,26 @@
       }
       .theme-toggle { width: 100%; }
       .view-tabs { overflow-x: auto; }
-      .tab-btn { flex: 1 0 auto; }
+      .view-tabs {
+        flex-wrap: wrap;
+      }
+      .tab-btn {
+        flex: 1 1 140px;
+      }
       .dashboard { grid-template-columns: 1fr; }
       .charts-grid { grid-template-columns: 1fr; }
-      .form-actions { width: 100%; margin-left: 0; }
-      .form-actions button { flex: 1 1 150px; }
+      .donut-wrap { grid-template-columns: 1fr; }
+      .donut { width: 160px; height: 160px; }
+      .form-actions {
+        width: 100%;
+        margin-left: 0;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .form-actions button {
+        width: 100%;
+        flex: 1 1 auto;
+      }
       .filter-controls,
       .filter-controls select,
       .filter-controls input,
@@ -579,6 +688,11 @@
       .form-group > input,
       .form-group > select {
         width: 100%;
+      }
+      .table-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
       }
       .recurrence-controls {
         display: grid;
@@ -694,6 +808,7 @@
       td[data-label="Ações"] {
         display: block;
         text-align: left;
+        white-space: normal;
       }
 
       td[data-label="Ações"]::before {
@@ -702,16 +817,28 @@
       }
 
       td[data-label="Ações"] button {
-        width: 100%;
-        margin: 0 0 8px;
+        width: 28px;
+        min-width: 28px;
+        height: 28px;
+        margin: 0 6px 6px 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
 
-      td[data-label="Ações"] button:last-child { margin-bottom: 0; }
+      td[data-label="Ações"] button:last-child { margin-bottom: 6px; }
 
       td[data-label="Selecionar"] {
         justify-content: flex-start;
         align-items: center;
         min-height: 38px;
+      }
+
+      td[data-label="Descrição"] {
+        max-width: none;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
       }
 
       td.empty-selection { display: none; }
@@ -739,6 +866,13 @@
       .card {
         padding: 14px;
       }
+      .summary-group {
+        padding: 10px;
+      }
+      .summary-group h2,
+      .chart-card h2 {
+        font-size: 15px;
+      }
       .recurrence-controls {
         grid-template-columns: 1fr;
         align-items: stretch;
@@ -761,8 +895,8 @@
     <div class="toolbar">
       <div class="toolbar-title">Período</div>
       <div class="filter-controls">
-        <select id="filterMonth"></select>
-        <select id="filterYear"></select>
+        <select id="filterMonth" onchange="loadDashboard()"></select>
+        <select id="filterYear" onchange="loadDashboard()"></select>
         <select id="filterType" onchange="applyTableFilters()">
           <option value="ALL">Todos os tipos</option>
           <option value="INCOME">Receitas</option>
@@ -883,10 +1017,6 @@
       <section class="table-panel">
         <div class="table-header">
           <h2>Registros do mês</h2>
-          <div class="table-actions">
-            <button class="cancel-btn" style="display: block;" onclick="markSelectedExpensesPaid()">Marcar despesas pagas</button>
-            <button class="cancel-btn" style="display: block;" onclick="exportCurrentMonthCsv()">Exportar CSV</button>
-          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -958,6 +1088,10 @@
             <span><span class="legend-dot expense"></span>Saldo negativo</span>
           </div>
           <div id="balanceChart"></div>
+        </section>
+        <section class="chart-card">
+          <h2>Participação das despesas</h2>
+          <div id="expenseDonut"></div>
         </section>
       </div>
     </div>
@@ -1259,22 +1393,6 @@
         .withSuccessHandler(() => { loadDashboard(); })
         .withFailureHandler((err) => { showNotice('Erro: ' + err.message, 'error'); })
         .apiToggleTransactionStatus(id);
-    }
-
-    function markSelectedExpensesPaid() {
-      const ids = getSelectedExpenseIds();
-      if (ids.length === 0) {
-        showNotice('Selecione pelo menos uma despesa.', 'error');
-        return;
-      }
-
-      google.script.run
-        .withSuccessHandler((result) => {
-          showNotice(`${result.updatedCount} despesa(s) marcada(s) como paga(s).`);
-          loadDashboard();
-        })
-        .withFailureHandler((err) => { showNotice('Erro: ' + err.message, 'error'); })
-        .apiSetTransactionsStatus(ids, 'PAGO');
     }
 
     /**
@@ -1580,20 +1698,39 @@
       container.appendChild(empty);
     }
 
+    function getChartColor(index) {
+      const palette = [
+        '#2563eb',
+        '#16a34a',
+        '#dc2626',
+        '#d97706',
+        '#7c3aed',
+        '#0f766e',
+        '#db2777',
+        '#4f46e5',
+        '#0891b2',
+        '#ca8a04'
+      ];
+      return palette[index % palette.length];
+    }
+
     function renderCharts(summaries) {
       const expenseContainer = document.getElementById('expenseChart');
       const incomeExpenseContainer = document.getElementById('incomeExpenseChart');
       const balanceContainer = document.getElementById('balanceChart');
+      const donutContainer = document.getElementById('expenseDonut');
       const items = summaries || [];
 
       expenseContainer.innerHTML = '';
       incomeExpenseContainer.innerHTML = '';
       balanceContainer.innerHTML = '';
+      donutContainer.innerHTML = '';
 
       if (items.length === 0) {
         setChartEmpty(expenseContainer, 'Nenhum dado para o mês selecionado.');
         setChartEmpty(incomeExpenseContainer, 'Nenhum dado para o mês selecionado.');
         setChartEmpty(balanceContainer, 'Nenhum dado para o mês selecionado.');
+        setChartEmpty(donutContainer, 'Nenhum dado para o mês selecionado.');
         return;
       }
 
@@ -1615,6 +1752,86 @@
         const balance = item.expectedBalance || 0;
         renderSingleBar(balanceContainer, item.category || 'Geral', balance, maxBalance, balance < 0 ? 'negative' : 'balance');
       });
+
+      renderDonutChart(donutContainer, items);
+    }
+
+    function renderDonutChart(container, summaries) {
+      const items = (summaries || [])
+        .map(item => ({
+          category: item.category || 'Geral',
+          totalExpense: Number(item.totalExpense || 0)
+        }))
+        .filter(item => item.totalExpense > 0)
+        .sort((a, b) => b.totalExpense - a.totalExpense);
+
+      if (items.length === 0) {
+        setChartEmpty(container, 'Nenhuma despesa para o mês selecionado.');
+        return;
+      }
+
+      const topItems = items.slice(0, 8);
+      const otherTotal = items.slice(8).reduce((sum, item) => sum + item.totalExpense, 0);
+      if (otherTotal > 0) {
+        topItems.push({ category: 'Outros', totalExpense: otherTotal });
+      }
+
+      const total = topItems.reduce((sum, item) => sum + item.totalExpense, 0);
+      const stops = [];
+      let cursor = 0;
+
+      topItems.forEach((item, index) => {
+        const fraction = item.totalExpense / total;
+        const start = cursor;
+        const end = cursor + fraction * 100;
+        stops.push(`${getChartColor(index)} ${start}% ${end}%`);
+        cursor = end;
+      });
+
+      const wrap = document.createElement('div');
+      wrap.className = 'donut-wrap';
+
+      const donut = document.createElement('div');
+      donut.className = 'donut';
+      donut.style.background = `conic-gradient(${stops.join(', ')})`;
+
+      const center = document.createElement('div');
+      center.className = 'donut-center';
+      const totalEl = document.createElement('div');
+      totalEl.className = 'donut-total';
+      totalEl.textContent = formatCurrency(total);
+      const captionEl = document.createElement('div');
+      captionEl.className = 'donut-caption';
+      captionEl.textContent = 'Total de despesas';
+      center.appendChild(totalEl);
+      center.appendChild(captionEl);
+      donut.appendChild(center);
+
+      const legend = document.createElement('div');
+      legend.className = 'donut-legend';
+      topItems.forEach((item, index) => {
+        const entry = document.createElement('div');
+        entry.className = 'donut-legend-item';
+
+        const swatch = document.createElement('span');
+        swatch.className = 'swatch';
+        swatch.style.background = getChartColor(index);
+
+        const name = document.createElement('span');
+        name.textContent = item.category;
+
+        const value = document.createElement('span');
+        value.textContent = formatCurrency(item.totalExpense);
+
+        entry.appendChild(swatch);
+        entry.appendChild(name);
+        entry.appendChild(value);
+        legend.appendChild(entry);
+      });
+
+      wrap.appendChild(donut);
+      wrap.appendChild(legend);
+      container.appendChild(wrap);
     }
 
     function applyTableFilters() {
@@ -1634,42 +1851,6 @@
       renderTransactions(currentFilteredTransactions);
     }
 
-    function exportCurrentMonthCsv() {
-      if (currentFilteredTransactions.length === 0) {
-        showNotice('Não há registros para exportar.', 'error');
-        return;
-      }
-
-      const rows = [
-        ['Data', 'Status', 'Tipo', 'Categoria', 'Descrição', 'Valor']
-      ].concat(currentFilteredTransactions.map(t => [
-        formatDateDisplay(t.date),
-        getStatusLabel(t),
-        getTypeLabel(t.type),
-        t.category || 'Geral',
-        t.description || '',
-        String(t.amount).replace('.', ',')
-      ]));
-
-      const csv = rows.map(row => row.map(value => {
-        const normalized = String(value).replace(/"/g, '""');
-        return `"${normalized}"`;
-      }).join(';')).join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const year = document.getElementById('filterYear').value;
-      const month = String(document.getElementById('filterMonth').value).padStart(2, '0');
-      link.href = url;
-      link.download = `registros-${year}-${month}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      showNotice('CSV exportado.');
-    }
-
     /**
      * Fetches and renders the monthly predictability dashboard.
      */
@@ -1682,6 +1863,7 @@
       setChartEmpty(document.getElementById('expenseChart'), 'Carregando gráfico...');
       setChartEmpty(document.getElementById('incomeExpenseChart'), 'Carregando gráfico...');
       setChartEmpty(document.getElementById('balanceChart'), 'Carregando gráfico...');
+      setChartEmpty(document.getElementById('expenseDonut'), 'Carregando gráfico...');
       
       document.getElementById('selectAll').checked = false;
       document.getElementById('totalSelected').innerText = formatCurrency(0);
@@ -1712,6 +1894,7 @@
           setChartEmpty(document.getElementById('expenseChart'), 'Não foi possível carregar o gráfico.');
           setChartEmpty(document.getElementById('incomeExpenseChart'), 'Não foi possível carregar o gráfico.');
           setChartEmpty(document.getElementById('balanceChart'), 'Não foi possível carregar o gráfico.');
+          setChartEmpty(document.getElementById('expenseDonut'), 'Não foi possível carregar o gráfico.');
           document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="8" class="empty-state">Não foi possível carregar os registros.</td></tr>';
         })
         .apiGetMonthlySummary(year, month);

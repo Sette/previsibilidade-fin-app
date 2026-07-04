@@ -127,7 +127,6 @@ function loadBackend(initialData) {
       apiAddTransaction,
       apiUpdateTransaction,
       apiToggleTransactionStatus,
-      apiSetTransactionsStatus,
       apiDeleteTransaction,
       apiGetMonthlySummary,
       apiGetCategories,
@@ -323,7 +322,7 @@ test('cadastra categoria nova na guia Categorias ao editar registro', () => {
   assert.deepEqual(Array.from(app.apiGetCategories()), ['Geral', 'Viagem']);
 });
 
-test('atualiza, alterna status, marca em lote e exclui registros', () => {
+test('atualiza, alterna status e exclui registros', () => {
   const app = loadBackend([
     ['Id', 'Year', 'Month', 'Date', 'Type', 'Description', 'Amount', 'Status', 'Category', 'CreatedAt', 'UpdatedAt', 'SettledAt'],
     ['1', '2026', '07', '2026-07-01', 'EXPENSE', 'Conta A', 100, 'PENDENTE', 'Geral', '', '', ''],
@@ -350,13 +349,6 @@ test('atualiza, alterna status, marca em lote e exclui registros', () => {
   assert.equal(toggleResult.newStatus, 'PAGO');
   assert.equal(sheet.rows[2][7], 'PAGO');
   assert.match(sheet.rows[2][11], /^\d{4}-\d{2}-\d{2}$/);
-
-  const batchResult = app.apiSetTransactionsStatus(['1', '2'], 'PENDENTE');
-  assert.equal(batchResult.success, true);
-  assert.equal(batchResult.updatedCount, 2);
-  assert.equal(sheet.rows[1][7], 'PENDENTE');
-  assert.equal(sheet.rows[2][7], 'PENDENTE');
-  assert.equal(sheet.rows[2][11], '');
 
   app.apiDeleteTransaction('2');
   sheet = app.spreadsheet.getSheetByName('Transactions');
