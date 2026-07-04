@@ -659,6 +659,7 @@
   <script>
     let currentEditId = null;
     let currentEditStatus = 'PENDENTE';
+    let lastAddDate = '';
     const THEME_STORAGE_KEY = 'financialPredictabilityTheme';
 
     function applyTheme(theme) {
@@ -694,15 +695,25 @@
       }
     }
 
-    /**
-     * Set the date picker to today's date.
-     */
-    function setTodayDate() {
+    function getTodayDateString() {
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');
       const dd = String(today.getDate()).padStart(2, '0');
-      document.getElementById('recordDate').value = `${yyyy}-${mm}-${dd}`;
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    /**
+     * Set the date picker to today's date.
+     */
+    function setTodayDate() {
+      const today = getTodayDateString();
+      document.getElementById('recordDate').value = today;
+      lastAddDate = today;
+    }
+
+    function restoreLastAddDate() {
+      document.getElementById('recordDate').value = lastAddDate || getTodayDateString();
     }
 
     /**
@@ -711,6 +722,9 @@
     function init() {
       initTheme();
       setTodayDate();
+      document.getElementById('recordDate').addEventListener('change', function() {
+        if (!currentEditId) lastAddDate = this.value;
+      });
 
       const now = new Date();
       const monthSelect = document.getElementById('filterMonth');
@@ -809,6 +823,9 @@
      * Prepares the form for editing an existing record.
      */
     function prepareEdit(id, date, type, description, amount, status) {
+      if (!currentEditId) {
+        lastAddDate = document.getElementById('recordDate').value || lastAddDate;
+      }
       currentEditId = id;
       currentEditStatus = status;
       document.getElementById('recordDate').value = date;
@@ -830,7 +847,7 @@
     function cancelEdit() {
       currentEditId = null;
       currentEditStatus = 'PENDENTE';
-      setTodayDate();
+      restoreLastAddDate();
       document.getElementById('type').value = 'INCOME';
       document.getElementById('description').value = '';
       document.getElementById('amount').value = '';
@@ -909,6 +926,7 @@
         const payload = { date, type, description, amount, recurrence };
         google.script.run
           .withSuccessHandler(() => {
+            lastAddDate = date;
             cancelEdit();
             btn.disabled = false;
             loadDashboard(); 
