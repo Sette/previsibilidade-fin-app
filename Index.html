@@ -219,10 +219,14 @@
 
     button.action-btn {
       min-height: 32px;
-      padding: 6px 10px;
-      font-size: 12px;
+      min-width: 34px;
+      width: 34px;
+      padding: 6px;
+      font-size: 14px;
       border-radius: 6px;
       margin: 2px 4px 2px 0;
+      line-height: 1;
+      text-align: center;
     }
 
     button.status-btn { background: var(--success); }
@@ -236,24 +240,41 @@
 
     .dashboard {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .dashboard-row-bottom {
-      display: flex;
-      justify-content: flex-end;
       margin-bottom: 18px;
     }
 
-    .card {
+    .summary-group {
       min-width: 0;
-      padding: 16px;
+      padding: 12px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--surface);
       box-shadow: var(--card-shadow);
+    }
+
+    .summary-group h2 {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .card {
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: none;
     }
 
     .card h3 {
@@ -276,7 +297,7 @@
     .card.income { border-top: 4px solid var(--success); }
     .card.expense { border-top: 4px solid var(--danger); }
     .card.paid-expense { border-top: 4px solid #ea7a1a; }
-    .card.selected-sum { border-top: 4px solid #7c3aed; width: min(100%, 286px); }
+    .card.selected-sum { border-top: 4px solid #7c3aed; }
     .card.balance { border-top: 4px solid var(--primary); }
 
     .panel {
@@ -315,6 +336,140 @@
 
     .notice.success { border-color: var(--success); color: var(--success); }
     .notice.error { border-color: var(--danger); color: var(--danger); }
+
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tab-btn {
+      min-height: 40px;
+      padding: 8px 14px;
+      border: 1px solid transparent;
+      border-bottom: 0;
+      border-radius: 6px 6px 0 0;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .tab-btn:hover {
+      background: var(--secondary-hover);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .view-panel.hidden {
+      display: none;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .chart-card {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--card-shadow);
+    }
+
+    .chart-card h2 {
+      margin: 0 0 14px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 760;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: -6px 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .legend-dot.income { background: var(--success); }
+    .legend-dot.expense { background: var(--danger); }
+    .legend-dot.balance { background: var(--primary); }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: minmax(92px, 150px) minmax(0, 1fr) minmax(92px, auto);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 11px;
+    }
+
+    .chart-label {
+      min-width: 0;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chart-value {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .bar-track {
+      position: relative;
+      min-height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      border: 1px solid var(--table-border);
+    }
+
+    .bar-fill {
+      display: block;
+      min-height: 12px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .bar-fill.income { background: var(--success); }
+    .bar-fill.expense { background: var(--danger); }
+    .bar-fill.balance { background: var(--primary); }
+    .bar-fill.negative { background: var(--danger); }
+
+    .dual-bars {
+      display: grid;
+      gap: 5px;
+    }
+
+    .chart-card .empty-state {
+      padding: 14px 0;
+      border-bottom: 0;
+    }
 
     label {
       color: var(--label);
@@ -395,7 +550,8 @@
     .date-cell { color: var(--muted); font-size: 13px; font-weight: 650; }
     .empty-state { text-align: center; color: var(--muted); padding: 26px 14px; }
     .select-col { width: 46px; }
-    .actions-col { width: 240px; }
+    .actions-col { width: 132px; }
+    td[data-label="Ações"] { white-space: nowrap; }
 
     @media (max-width: 860px) {
       body {
@@ -410,9 +566,10 @@
         flex-direction: column;
       }
       .theme-toggle { width: 100%; }
-      .dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .dashboard-row-bottom { justify-content: stretch; }
-      .card.selected-sum { width: 100%; }
+      .view-tabs { overflow-x: auto; }
+      .tab-btn { flex: 1 0 auto; }
+      .dashboard { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
       .form-actions { width: 100%; margin-left: 0; }
       .form-actions button { flex: 1 1 150px; }
       .filter-controls,
@@ -430,6 +587,11 @@
       }
       .recurrence-controls .small-input { width: 100%; }
       .row-checkbox { width: 16px; }
+      .chart-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .chart-value { text-align: left; }
     }
 
     @media (max-width: 700px) {
@@ -564,7 +726,6 @@
     }
 
     @media (max-width: 560px) {
-      .dashboard { grid-template-columns: 1fr; }
       .app-header h1 { font-size: 24px; }
       .card h2 { font-size: 20px; }
       .toolbar,
@@ -623,109 +784,183 @@
     <div id="notice" class="notice" role="status" aria-live="polite"></div>
 
     <div class="dashboard">
-      <div class="card income">
-        <h3>Receitas Previstas</h3>
-        <h2 id="totalIncome">R$ 0,00</h2>
-      </div>
-      <div class="card expense">
-        <h3>Despesas Previstas</h3>
-        <h2 id="totalExpense">R$ 0,00</h2>
-      </div>
-      <div class="card paid-expense">
-        <h3>Despesas Pagas</h3>
-        <h2 id="totalPaidExpense">R$ 0,00</h2>
-      </div>
-      <div class="card balance">
-        <h3>Saldo Projetado</h3>
-        <h2 id="totalBalance">R$ 0,00</h2>
-      </div>
-      <div class="card income">
-        <h3>Receitas Recebidas</h3>
-        <h2 id="totalPaidIncome">R$ 0,00</h2>
-      </div>
-      <div class="card income">
-        <h3>Receitas Pendentes</h3>
-        <h2 id="pendingIncome">R$ 0,00</h2>
-      </div>
-      <div class="card expense">
-        <h3>Despesas Pendentes</h3>
-        <h2 id="pendingExpenses">R$ 0,00</h2>
-      </div>
-      <div class="card balance">
-        <h3>Saldo Realizado</h3>
-        <h2 id="realizedBalance">R$ 0,00</h2>
-      </div>
-      <div class="card paid-expense">
-        <h3>% Despesas Pagas</h3>
-        <h2 id="paidExpensePercent">0%</h2>
+      <section class="summary-group">
+        <h2>Receitas</h2>
+        <div class="summary-grid">
+          <div class="card income">
+            <h3>Previstas</h3>
+            <h2 id="totalIncome">R$ 0,00</h2>
+          </div>
+          <div class="card income">
+            <h3>Recebidas</h3>
+            <h2 id="totalPaidIncome">R$ 0,00</h2>
+          </div>
+          <div class="card income">
+            <h3>Pendentes</h3>
+            <h2 id="pendingIncome">R$ 0,00</h2>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-group">
+        <h2>Despesas</h2>
+        <div class="summary-grid">
+          <div class="card expense">
+            <h3>Previstas</h3>
+            <h2 id="totalExpense">R$ 0,00</h2>
+          </div>
+          <div class="card paid-expense">
+            <h3>Pagas</h3>
+            <h2 id="totalPaidExpense">R$ 0,00</h2>
+          </div>
+          <div class="card expense">
+            <h3>Pendentes</h3>
+            <h2 id="pendingExpenses">R$ 0,00</h2>
+          </div>
+          <div class="card paid-expense">
+            <h3>% Pagas</h3>
+            <h2 id="paidExpensePercent">0%</h2>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-group">
+        <h2>Saldos</h2>
+        <div class="summary-grid">
+          <div class="card balance">
+            <h3>Projetado</h3>
+            <h2 id="totalBalance">R$ 0,00</h2>
+          </div>
+          <div class="card balance">
+            <h3>Realizado</h3>
+            <h2 id="realizedBalance">R$ 0,00</h2>
+          </div>
+          <div class="card selected-sum">
+            <h3>Total Selecionado</h3>
+            <h2 id="totalSelected">R$ 0,00</h2>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <nav class="view-tabs" aria-label="Visualizações">
+      <button id="tabRecords" class="tab-btn active" type="button" onclick="showView('records')">Registros</button>
+      <button id="tabCategories" class="tab-btn" type="button" onclick="showView('categories')">Saldos por categoria</button>
+      <button id="tabCharts" class="tab-btn" type="button" onclick="showView('charts')">Gráficos</button>
+    </nav>
+
+    <div id="recordsView" class="view-panel">
+      <section class="panel">
+        <div class="panel-header">
+          <h2 id="formTitle">Adicionar Registro</h2>
+        </div>
+        <div class="form-group">
+          <input type="date" id="recordDate" required title="Data do Vencimento/Recebimento">
+          <select id="type">
+            <option value="INCOME">Receita</option>
+            <option value="EXPENSE">Despesa</option>
+          </select>
+          <input type="text" id="category" class="category-input" list="categoryOptions" placeholder="Categoria" value="Geral">
+          <datalist id="categoryOptions"></datalist>
+          <input type="text" id="description" class="description-input" placeholder="Descrição (ex: Salário, Aluguel)" required>
+          <input type="number" id="amount" class="amount-input" placeholder="Valor" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <div id="recurrenceWrapper" class="recurrence-controls">
+            <label for="recurrence">Repetir por</label>
+            <input type="number" id="recurrence" class="small-input" value="1" min="1" max="120" title="Número de meses">
+            <span class="recurrence-suffix">mês(es)</span>
+          </div>
+
+          <div class="form-actions">
+            <button id="cancelEditBtn" class="cancel-btn" onclick="cancelEdit()">Cancelar</button>
+            <button type="button" class="cancel-btn" style="display: block;" onclick="clearFormFields()">Limpar campos</button>
+            <button id="submitBtn" onclick="submitRecord()">Adicionar Registro</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="table-panel">
+        <div class="table-header">
+          <h2>Registros do mês</h2>
+          <div class="table-actions">
+            <button class="cancel-btn" style="display: block;" onclick="markSelectedExpensesPaid()">Marcar despesas pagas</button>
+            <button class="cancel-btn" style="display: block;" onclick="exportCurrentMonthCsv()">Exportar CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="select-col"><input type="checkbox" id="selectAll" class="row-checkbox" onchange="toggleSelectAll(this)" title="Selecionar todas as despesas"></th>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Tipo</th>
+                <th>Categoria</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th class="actions-col">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="transactionsBody">
+              <tr><td colspan="8" class="empty-state">Selecione um mês para ver os registros previstos.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div id="categoriesView" class="view-panel hidden">
+      <section class="table-panel">
+        <div class="table-header">
+          <h2>Saldos por categoria</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Receitas</th>
+                <th>Receitas Pendentes</th>
+                <th>Despesas</th>
+                <th>Despesas Pagas</th>
+                <th>Despesas Pendentes</th>
+                <th>Saldo Projetado</th>
+                <th>Saldo Realizado</th>
+              </tr>
+            </thead>
+            <tbody id="categorySummaryBody">
+              <tr><td colspan="8" class="empty-state">Carregando saldos por categoria...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div id="chartsView" class="view-panel hidden">
+      <div class="charts-grid">
+        <section class="chart-card">
+          <h2>Despesas por categoria</h2>
+          <div id="expenseChart"></div>
+        </section>
+        <section class="chart-card">
+          <h2>Receitas x despesas</h2>
+          <div class="chart-legend">
+            <span><span class="legend-dot income"></span>Receitas</span>
+            <span><span class="legend-dot expense"></span>Despesas</span>
+          </div>
+          <div id="incomeExpenseChart"></div>
+        </section>
+        <section class="chart-card">
+          <h2>Saldo projetado por categoria</h2>
+          <div class="chart-legend">
+            <span><span class="legend-dot balance"></span>Saldo positivo</span>
+            <span><span class="legend-dot expense"></span>Saldo negativo</span>
+          </div>
+          <div id="balanceChart"></div>
+        </section>
       </div>
     </div>
-    
-    <div class="dashboard-row-bottom">
-      <div class="card selected-sum">
-        <h3>Total Selecionado (Despesas)</h3>
-        <h2 id="totalSelected">R$ 0,00</h2>
-      </div>
-    </div>
-
-    <section class="panel">
-      <div class="panel-header">
-        <h2 id="formTitle">Adicionar Registro</h2>
-      </div>
-      <div class="form-group">
-        <input type="date" id="recordDate" required title="Data do Vencimento/Recebimento">
-        <select id="type">
-          <option value="INCOME">Receita</option>
-          <option value="EXPENSE">Despesa</option>
-        </select>
-        <input type="text" id="category" class="category-input" list="categoryOptions" placeholder="Categoria" value="Geral">
-        <datalist id="categoryOptions"></datalist>
-        <input type="text" id="description" class="description-input" placeholder="Descrição (ex: Salário, Aluguel)" required>
-        <input type="number" id="amount" class="amount-input" placeholder="Valor" step="0.01" required>
-      </div>
-      <div class="form-group">
-        <div id="recurrenceWrapper" class="recurrence-controls">
-          <label for="recurrence">Repetir por</label>
-          <input type="number" id="recurrence" class="small-input" value="1" min="1" max="120" title="Número de meses">
-          <span class="recurrence-suffix">mês(es)</span>
-        </div>
-
-        <div class="form-actions">
-          <button id="cancelEditBtn" class="cancel-btn" onclick="cancelEdit()">Cancelar</button>
-          <button type="button" class="cancel-btn" style="display: block;" onclick="clearFormFields()">Limpar campos</button>
-          <button id="submitBtn" onclick="submitRecord()">Adicionar Registro</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="table-panel">
-      <div class="table-header">
-        <h2>Registros do mês</h2>
-        <div class="table-actions">
-          <button class="cancel-btn" style="display: block;" onclick="markSelectedExpensesPaid()">Marcar despesas pagas</button>
-          <button class="cancel-btn" style="display: block;" onclick="exportCurrentMonthCsv()">Exportar CSV</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th class="select-col"><input type="checkbox" id="selectAll" class="row-checkbox" onchange="toggleSelectAll(this)" title="Selecionar todas as despesas"></th>
-              <th>Data</th>
-              <th>Status</th>
-              <th>Tipo</th>
-              <th>Categoria</th>
-              <th>Descrição</th>
-              <th>Valor</th>
-              <th class="actions-col">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="transactionsBody">
-            <tr><td colspan="8" class="empty-state">Selecione um mês para ver os registros previstos.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </div>
 
   <script>
@@ -781,6 +1016,18 @@
       showNotice.timeoutId = window.setTimeout(() => {
         notice.style.display = 'none';
       }, 3800);
+    }
+
+    function showView(view) {
+      const recordsActive = view === 'records';
+      const categoriesActive = view === 'categories';
+      const chartsActive = view === 'charts';
+      document.getElementById('recordsView').classList.toggle('hidden', !recordsActive);
+      document.getElementById('categoriesView').classList.toggle('hidden', !categoriesActive);
+      document.getElementById('chartsView').classList.toggle('hidden', !chartsActive);
+      document.getElementById('tabRecords').classList.toggle('active', recordsActive);
+      document.getElementById('tabCategories').classList.toggle('active', categoriesActive);
+      document.getElementById('tabCharts').classList.toggle('active', chartsActive);
     }
 
     function getTodayDateString() {
@@ -1134,6 +1381,17 @@
       return transaction.type === 'INCOME' ? 'Receber' : 'Pagar';
     }
 
+    function getStatusButtonIcon(transaction) {
+      return transaction.status === 'PAGO' ? '↺' : '✓';
+    }
+
+    function setIconButton(button, icon, label) {
+      button.type = 'button';
+      button.textContent = icon;
+      button.title = label;
+      button.setAttribute('aria-label', label);
+    }
+
     function createCell(label, text, className) {
       const cell = document.createElement('td');
       cell.setAttribute('data-label', label);
@@ -1197,13 +1455,13 @@
 
         const statusButton = document.createElement('button');
         statusButton.className = t.status === 'PAGO' ? 'action-btn status-undo-btn' : 'action-btn status-btn';
-        statusButton.textContent = getStatusButtonLabel(t);
+        setIconButton(statusButton, getStatusButtonIcon(t), getStatusButtonLabel(t));
         statusButton.addEventListener('click', () => toggleStatus(t.id));
         actionsCell.appendChild(statusButton);
 
         const editButton = document.createElement('button');
         editButton.className = 'action-btn edit-btn';
-        editButton.textContent = 'Editar';
+        setIconButton(editButton, '✎', 'Editar');
         editButton.addEventListener('click', () => {
           prepareEdit(t.id, formatDateForInput(t.date), t.type, t.description, t.amount, t.status);
         });
@@ -1211,7 +1469,7 @@
 
         const deleteButton = document.createElement('button');
         deleteButton.className = 'action-btn delete-btn';
-        deleteButton.textContent = 'Excluir';
+        setIconButton(deleteButton, '×', 'Excluir');
         deleteButton.addEventListener('click', () => deleteRecord(t.id));
         actionsCell.appendChild(deleteButton);
 
@@ -1220,6 +1478,143 @@
       });
 
       updateSelectedSum();
+    }
+
+    function renderCategorySummaries(summaries) {
+      const tbody = document.getElementById('categorySummaryBody');
+      tbody.innerHTML = '';
+
+      if (!summaries || summaries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Nenhum saldo por categoria para este mês.</td></tr>';
+        return;
+      }
+
+      summaries.forEach(item => {
+        const tr = document.createElement('tr');
+
+        tr.appendChild(createCell('Categoria', item.category || 'Geral'));
+        tr.appendChild(createCell('Receitas', formatCurrency(item.totalIncome || 0), 'type-income'));
+        tr.appendChild(createCell('Receitas Pendentes', formatCurrency(item.pendingIncome || 0)));
+        tr.appendChild(createCell('Despesas', formatCurrency(item.totalExpense || 0), 'type-expense'));
+        tr.appendChild(createCell('Despesas Pagas', formatCurrency(item.totalPaidExpenses || 0)));
+        tr.appendChild(createCell('Despesas Pendentes', formatCurrency(item.pendingExpenses || 0)));
+        tr.appendChild(createCell('Saldo Projetado', formatCurrency(item.expectedBalance || 0)));
+        tr.appendChild(createCell('Saldo Realizado', formatCurrency(item.realizedBalance || 0)));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSingleBar(container, label, value, maxValue, className) {
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'chart-label';
+      labelEl.textContent = label;
+      labelEl.title = label;
+
+      const track = document.createElement('div');
+      track.className = 'bar-track';
+
+      const fill = document.createElement('span');
+      fill.className = `bar-fill ${className || ''}`;
+      fill.style.width = `${maxValue > 0 ? Math.max((Math.abs(value) / maxValue) * 100, 2) : 0}%`;
+      track.appendChild(fill);
+
+      const valueEl = document.createElement('div');
+      valueEl.className = 'chart-value';
+      valueEl.textContent = formatCurrency(value);
+
+      row.appendChild(labelEl);
+      row.appendChild(track);
+      row.appendChild(valueEl);
+      container.appendChild(row);
+    }
+
+    function renderDualBar(container, item, maxValue) {
+      const row = document.createElement('div');
+      row.className = 'chart-row';
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'chart-label';
+      labelEl.textContent = item.category || 'Geral';
+      labelEl.title = item.category || 'Geral';
+
+      const bars = document.createElement('div');
+      bars.className = 'dual-bars';
+
+      const incomeTrack = document.createElement('div');
+      incomeTrack.className = 'bar-track';
+      const incomeFill = document.createElement('span');
+      incomeFill.className = 'bar-fill income';
+      incomeFill.title = `Receitas: ${formatCurrency(item.totalIncome || 0)}`;
+      incomeFill.style.width = `${maxValue > 0 ? Math.max(((item.totalIncome || 0) / maxValue) * 100, item.totalIncome ? 2 : 0) : 0}%`;
+      incomeTrack.appendChild(incomeFill);
+
+      const expenseTrack = document.createElement('div');
+      expenseTrack.className = 'bar-track';
+      const expenseFill = document.createElement('span');
+      expenseFill.className = 'bar-fill expense';
+      expenseFill.title = `Despesas: ${formatCurrency(item.totalExpense || 0)}`;
+      expenseFill.style.width = `${maxValue > 0 ? Math.max(((item.totalExpense || 0) / maxValue) * 100, item.totalExpense ? 2 : 0) : 0}%`;
+      expenseTrack.appendChild(expenseFill);
+
+      bars.appendChild(incomeTrack);
+      bars.appendChild(expenseTrack);
+
+      const valueEl = document.createElement('div');
+      valueEl.className = 'chart-value';
+      valueEl.textContent = `${formatCurrency(item.totalIncome || 0)} / ${formatCurrency(item.totalExpense || 0)}`;
+
+      row.appendChild(labelEl);
+      row.appendChild(bars);
+      row.appendChild(valueEl);
+      container.appendChild(row);
+    }
+
+    function setChartEmpty(container, message) {
+      container.innerHTML = '';
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = message;
+      container.appendChild(empty);
+    }
+
+    function renderCharts(summaries) {
+      const expenseContainer = document.getElementById('expenseChart');
+      const incomeExpenseContainer = document.getElementById('incomeExpenseChart');
+      const balanceContainer = document.getElementById('balanceChart');
+      const items = summaries || [];
+
+      expenseContainer.innerHTML = '';
+      incomeExpenseContainer.innerHTML = '';
+      balanceContainer.innerHTML = '';
+
+      if (items.length === 0) {
+        setChartEmpty(expenseContainer, 'Nenhum dado para o mês selecionado.');
+        setChartEmpty(incomeExpenseContainer, 'Nenhum dado para o mês selecionado.');
+        setChartEmpty(balanceContainer, 'Nenhum dado para o mês selecionado.');
+        return;
+      }
+
+      const expenseItems = items.filter(item => (item.totalExpense || 0) > 0);
+      const maxExpense = Math.max(0, ...expenseItems.map(item => item.totalExpense || 0));
+      if (expenseItems.length === 0) {
+        setChartEmpty(expenseContainer, 'Nenhuma despesa para o mês selecionado.');
+      } else {
+        expenseItems.forEach(item => {
+          renderSingleBar(expenseContainer, item.category || 'Geral', item.totalExpense || 0, maxExpense, 'expense');
+        });
+      }
+
+      const maxIncomeExpense = Math.max(0, ...items.map(item => Math.max(item.totalIncome || 0, item.totalExpense || 0)));
+      items.forEach(item => renderDualBar(incomeExpenseContainer, item, maxIncomeExpense));
+
+      const maxBalance = Math.max(0, ...items.map(item => Math.abs(item.expectedBalance || 0)));
+      items.forEach(item => {
+        const balance = item.expectedBalance || 0;
+        renderSingleBar(balanceContainer, item.category || 'Geral', balance, maxBalance, balance < 0 ? 'negative' : 'balance');
+      });
     }
 
     function applyTableFilters() {
@@ -1283,6 +1678,10 @@
       const year = document.getElementById('filterYear').value;
 
       document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="8" class="empty-state">Carregando...</td></tr>';
+      document.getElementById('categorySummaryBody').innerHTML = '<tr><td colspan="8" class="empty-state">Carregando saldos por categoria...</td></tr>';
+      setChartEmpty(document.getElementById('expenseChart'), 'Carregando gráfico...');
+      setChartEmpty(document.getElementById('incomeExpenseChart'), 'Carregando gráfico...');
+      setChartEmpty(document.getElementById('balanceChart'), 'Carregando gráfico...');
       
       document.getElementById('selectAll').checked = false;
       document.getElementById('totalSelected').innerText = formatCurrency(0);
@@ -1301,12 +1700,18 @@
 
           currentTransactions = summary.transactions || [];
           updateCategoryOptions(summary.categories || []);
+          renderCategorySummaries(summary.categorySummaries || []);
+          renderCharts(summary.categorySummaries || []);
           applyTableFilters();
         })
         .withFailureHandler((err) => {
           showNotice('Erro: ' + err.message, 'error');
           currentTransactions = [];
           currentFilteredTransactions = [];
+          document.getElementById('categorySummaryBody').innerHTML = '<tr><td colspan="8" class="empty-state">Não foi possível carregar os saldos por categoria.</td></tr>';
+          setChartEmpty(document.getElementById('expenseChart'), 'Não foi possível carregar o gráfico.');
+          setChartEmpty(document.getElementById('incomeExpenseChart'), 'Não foi possível carregar o gráfico.');
+          setChartEmpty(document.getElementById('balanceChart'), 'Não foi possível carregar o gráfico.');
           document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="8" class="empty-state">Não foi possível carregar os registros.</td></tr>';
         })
         .apiGetMonthlySummary(year, month);

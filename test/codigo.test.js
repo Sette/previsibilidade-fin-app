@@ -230,6 +230,23 @@ test('calcula totais previstos, realizados e pendentes do mes', () => {
   assert.equal(summary.realizedBalance, 3200);
   assert.equal(summary.paidExpensePercent, 72);
   assert.deepEqual(Array.from(summary.categories), ['Cartão', 'Geral', 'Moradia', 'Salário']);
+
+  const categorySummaries = Array.from(summary.categorySummaries);
+  const cartao = categorySummaries.find(item => item.category === 'Cartão');
+  const geral = categorySummaries.find(item => item.category === 'Geral');
+  const moradia = categorySummaries.find(item => item.category === 'Moradia');
+  const salario = categorySummaries.find(item => item.category === 'Salário');
+
+  assert.equal(categorySummaries.length, 4);
+  assert.equal(cartao.totalExpense, 700);
+  assert.equal(cartao.pendingExpenses, 700);
+  assert.equal(cartao.expectedBalance, -700);
+  assert.equal(geral.totalIncome, 1000);
+  assert.equal(geral.pendingIncome, 1000);
+  assert.equal(moradia.totalPaidExpenses, 1800);
+  assert.equal(moradia.realizedBalance, -1800);
+  assert.equal(salario.totalPaidIncome, 5000);
+  assert.equal(salario.realizedBalance, 5000);
 });
 
 test('le categorias cadastradas na guia Categorias', () => {

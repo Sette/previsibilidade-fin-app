@@ -495,21 +495,55 @@ const TransactionService = {
     let totalExpense = 0;
     let totalPaidIncome = 0;
     let totalPaidExpenses = 0;
+    const categorySummaryMap = {};
 
     transactions.forEach(t => {
+      const category = t.category || DEFAULT_CATEGORY;
+      if (!categorySummaryMap[category]) {
+        categorySummaryMap[category] = {
+          category: category,
+          totalIncome: 0,
+          totalExpense: 0,
+          totalPaidIncome: 0,
+          totalPaidExpenses: 0,
+          transactionCount: 0
+        };
+      }
+      categorySummaryMap[category].transactionCount++;
+
       if (t.type === 'INCOME') {
         totalIncome += t.amount;
+        categorySummaryMap[category].totalIncome += t.amount;
         if (t.status === 'PAGO') {
           totalPaidIncome += t.amount;
+          categorySummaryMap[category].totalPaidIncome += t.amount;
         }
       }
       if (t.type === 'EXPENSE') {
         totalExpense += t.amount;
+        categorySummaryMap[category].totalExpense += t.amount;
         if (t.status === 'PAGO') {
           totalPaidExpenses += t.amount;
+          categorySummaryMap[category].totalPaidExpenses += t.amount;
         }
       }
     });
+
+    const categorySummaries = Object.keys(categorySummaryMap)
+      .map(category => {
+        const item = categorySummaryMap[category];
+        item.pendingIncome = item.totalIncome - item.totalPaidIncome;
+        item.pendingExpenses = item.totalExpense - item.totalPaidExpenses;
+        item.expectedBalance = item.totalIncome - item.totalExpense;
+        item.realizedBalance = item.totalPaidIncome - item.totalPaidExpenses;
+        item.paidExpensePercent = item.totalExpense > 0 ? (item.totalPaidExpenses / item.totalExpense) * 100 : 0;
+        return item;
+      })
+      .sort((a, b) => {
+        const amountDiff = b.totalExpense - a.totalExpense;
+        if (amountDiff !== 0) return amountDiff;
+        return a.category.localeCompare(b.category, 'pt-BR');
+      });
 
     return {
       transactions: transactions,
@@ -522,7 +556,8 @@ const TransactionService = {
       expectedBalance: totalIncome - totalExpense,
       realizedBalance: totalPaidIncome - totalPaidExpenses,
       paidExpensePercent: totalExpense > 0 ? (totalPaidExpenses / totalExpense) * 100 : 0,
-      categories: registeredCategories
+      categories: registeredCategories,
+      categorySummaries: categorySummaries
     };
   }
 };
