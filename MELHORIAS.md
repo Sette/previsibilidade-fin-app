@@ -5,6 +5,7 @@
 - Data selecionada preservada ao voltar do modo de edição.
 - Tipo e categoria preservados para cadastros em sequência.
 - Categoria adicionada aos registros, com migração automática de colunas.
+- Categorias cadastradas em guia própria `Categorias`.
 - Filtros por tipo, status, categoria e busca por descrição.
 - Totais de receitas recebidas, receitas pendentes, despesas pendentes, saldo realizado e percentual de despesas pagas.
 - Status com texto adequado para receita e despesa: receber/recebido e pagar/pago.

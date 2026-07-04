@@ -737,19 +737,6 @@
     let currentTransactions = [];
     let currentFilteredTransactions = [];
     const THEME_STORAGE_KEY = 'financialPredictabilityTheme';
-    const DEFAULT_CATEGORIES = [
-      'Geral',
-      'Salário',
-      'Moradia',
-      'Alimentação',
-      'Transporte',
-      'Saúde',
-      'Educação',
-      'Cartão',
-      'Lazer',
-      'Investimentos',
-      'Impostos'
-    ];
 
     function applyTheme(theme) {
       const isDark = theme === 'dark';
@@ -818,7 +805,7 @@
     }
 
     function updateCategoryOptions(categories) {
-      const allCategories = DEFAULT_CATEGORIES.concat(categories || [])
+      const allCategories = (categories || [])
         .filter((category, index, list) => category && list.indexOf(category) === index)
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
@@ -857,7 +844,7 @@
       document.getElementById('category').addEventListener('input', function() {
         if (!currentEditId) lastAddCategory = this.value || 'Geral';
       });
-      updateCategoryOptions([]);
+      updateCategoryOptions(['Geral']);
 
       const now = new Date();
       const monthSelect = document.getElementById('filterMonth');

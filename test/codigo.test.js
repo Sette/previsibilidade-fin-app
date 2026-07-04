@@ -75,9 +75,14 @@ class FakeSheet {
 }
 
 class FakeSpreadsheet {
-  constructor(initialRows) {
+  constructor(initialData) {
     this.sheets = {};
-    if (initialRows) this.sheets.Transactions = new FakeSheet(initialRows);
+    if (Array.isArray(initialData)) {
+      this.sheets.Transactions = new FakeSheet(initialData);
+    } else if (initialData) {
+      if (initialData.transactions) this.sheets.Transactions = new FakeSheet(initialData.transactions);
+      if (initialData.categories) this.sheets.Categorias = new FakeSheet(initialData.categories);
+    }
   }
 
   getSheetByName(name) {
@@ -90,9 +95,9 @@ class FakeSpreadsheet {
   }
 }
 
-function loadBackend(initialRows) {
+function loadBackend(initialData) {
   const code = readFileSync('Codigo.gs', 'utf8');
-  const spreadsheet = new FakeSpreadsheet(initialRows);
+  const spreadsheet = new FakeSpreadsheet(initialData);
   let uuidCounter = 0;
   const context = {
     SpreadsheetApp: {
@@ -125,6 +130,8 @@ function loadBackend(initialRows) {
       apiSetTransactionsStatus,
       apiDeleteTransaction,
       apiGetMonthlySummary,
+      apiGetCategories,
+      CategoryRepository,
       TRANSACTION_HEADERS
     };
   `, context);
@@ -200,7 +207,16 @@ test('calcula totais previstos, realizados e pendentes do mes', () => {
     ['3', '2026', '07', '2026-07-12', 'EXPENSE', 'Cartao', 700, 'PENDENTE', 'Cartão', '', '', ''],
     ['4', '2026', '07', '2026-07-20', 'INCOME', 'Freela', 1000, 'PENDENTE', 'Geral', '', '', '']
   ];
-  const app = loadBackend(rows);
+  const app = loadBackend({
+    transactions: rows,
+    categories: [
+      ['Categoria'],
+      ['Cartão'],
+      ['Geral'],
+      ['Moradia'],
+      ['Salário']
+    ]
+  });
 
   const summary = app.apiGetMonthlySummary('2026', '07');
 
@@ -214,6 +230,80 @@ test('calcula totais previstos, realizados e pendentes do mes', () => {
   assert.equal(summary.realizedBalance, 3200);
   assert.equal(summary.paidExpensePercent, 72);
   assert.deepEqual(Array.from(summary.categories), ['Cartão', 'Geral', 'Moradia', 'Salário']);
+});
+
+test('le categorias cadastradas na guia Categorias', () => {
+  const app = loadBackend({
+    categories: [
+      ['Categoria'],
+      ['Moradia'],
+      ['Cartão'],
+      ['Moradia'],
+      ['']
+    ]
+  });
+
+  assert.deepEqual(Array.from(app.apiGetCategories()), ['Cartão', 'Moradia']);
+});
+
+test('cria guia Categorias com valores padrao quando ela nao existe', () => {
+  const app = loadBackend();
+
+  const categories = Array.from(app.apiGetCategories());
+  const sheet = app.spreadsheet.getSheetByName('Categorias');
+
+  assert.ok(categories.includes('Geral'));
+  assert.ok(categories.includes('Moradia'));
+  assert.equal(sheet.rows[0][0], 'Categoria');
+  assert.equal(sheet.rows[1][0], 'Geral');
+});
+
+test('cadastra categoria nova na guia Categorias ao adicionar registro', () => {
+  const app = loadBackend({
+    categories: [
+      ['Categoria'],
+      ['Geral']
+    ]
+  });
+
+  app.apiAddTransaction({
+    date: '2026-07-04',
+    type: 'EXPENSE',
+    description: 'Consulta',
+    amount: 250,
+    category: 'Pets',
+    recurrence: 1
+  });
+
+  const categories = Array.from(app.apiGetCategories());
+  const sheet = app.spreadsheet.getSheetByName('Categorias');
+  assert.deepEqual(categories, ['Geral', 'Pets']);
+  assert.equal(sheet.rows.filter(row => row[0] === 'Pets').length, 1);
+});
+
+test('cadastra categoria nova na guia Categorias ao editar registro', () => {
+  const app = loadBackend({
+    transactions: [
+      ['Id', 'Year', 'Month', 'Date', 'Type', 'Description', 'Amount', 'Status', 'Category', 'CreatedAt', 'UpdatedAt', 'SettledAt'],
+      ['1', '2026', '07', '2026-07-01', 'EXPENSE', 'Conta A', 100, 'PENDENTE', 'Geral', '', '', '']
+    ],
+    categories: [
+      ['Categoria'],
+      ['Geral']
+    ]
+  });
+
+  app.apiUpdateTransaction({
+    id: '1',
+    date: '2026-07-01',
+    type: 'EXPENSE',
+    description: 'Conta A',
+    amount: 100,
+    status: 'PENDENTE',
+    category: 'Viagem'
+  });
+
+  assert.deepEqual(Array.from(app.apiGetCategories()), ['Geral', 'Viagem']);
 });
 
 test('atualiza, alterna status, marca em lote e exclui registros', () => {

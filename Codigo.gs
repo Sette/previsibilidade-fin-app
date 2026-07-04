@@ -4,6 +4,7 @@
  */
 
 const SHEET_NAME = 'Transactions';
+const CATEGORY_SHEET_NAME = 'Categorias';
 const TRANSACTION_HEADERS = [
   'Id',
   'Year',
@@ -35,6 +36,19 @@ const HEADER_FIELD_MAP = {
 };
 
 const DEFAULT_CATEGORY = 'Geral';
+const DEFAULT_CATEGORIES = [
+  'Geral',
+  'Salário',
+  'Moradia',
+  'Alimentação',
+  'Transporte',
+  'Saúde',
+  'Educação',
+  'Cartão',
+  'Lazer',
+  'Investimentos',
+  'Impostos'
+];
 
 /**
  * Controller: Serves the main HTML page.
@@ -238,6 +252,69 @@ const TransactionRepository = {
   }
 };
 
+const CategoryRepository = {
+  getSheet: function() {
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CATEGORY_SHEET_NAME);
+    if (!sheet) {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(CATEGORY_SHEET_NAME);
+      this.seedSheet(sheet);
+      return sheet;
+    }
+
+    if (sheet.getLastColumn() === 0) {
+      this.seedSheet(sheet);
+    }
+    return sheet;
+  },
+
+  seedSheet: function(sheet) {
+    const rows = [['Categoria']].concat(DEFAULT_CATEGORIES.map(category => [category]));
+    sheet.getRange(1, 1, rows.length, 1).setValues(rows);
+    sheet.getRange('1:1').setFontWeight('bold');
+  },
+
+  getAll: function() {
+    const sheet = this.getSheet();
+    const data = sheet.getDataRange().getValues();
+    const categories = [];
+    const seen = {};
+
+    data.forEach((row, index) => {
+      const category = String(row[0] || '').trim();
+      const normalized = category.toLowerCase();
+      if (!category) return;
+      if (index === 0 && (normalized === 'categoria' || normalized === 'category')) return;
+      if (seen[normalized]) return;
+      seen[normalized] = true;
+      categories.push(category);
+    });
+
+    if (categories.length === 0) {
+      return DEFAULT_CATEGORIES.slice();
+    }
+
+    return categories.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  },
+
+  ensureExists: function(category) {
+    const normalizedCategory = String(category || '').trim();
+    if (!normalizedCategory) return;
+
+    const sheet = this.getSheet();
+    const data = sheet.getDataRange().getValues();
+    const exists = data.some((row, index) => {
+      const existingCategory = String(row[0] || '').trim();
+      if (!existingCategory) return false;
+      if (index === 0 && existingCategory.toLowerCase() === 'categoria') return false;
+      return existingCategory.toLowerCase() === normalizedCategory.toLowerCase();
+    });
+
+    if (!exists) {
+      sheet.appendRow([normalizedCategory]);
+    }
+  }
+};
+
 /**
  * Service Layer: Encapsulates business logic, including date parsing, recurrence, and aggregation.
  */
@@ -287,6 +364,7 @@ const TransactionService = {
       throw new Error('A repetição deve ficar entre 1 e 120 meses.');
     }
     const normalized = this.normalizeTransactionInput(data);
+    CategoryRepository.ensureExists(normalized.category);
     
     const [yyyy, mm, dd] = normalized.date.split('-');
     const baseYear = parseInt(yyyy, 10);
@@ -332,6 +410,7 @@ const TransactionService = {
    */
   updateTransaction: function(data) {
     const normalized = this.normalizeTransactionInput(data);
+    CategoryRepository.ensureExists(normalized.category);
     const [yyyy, mm] = normalized.date.split('-');
     const transaction = Object.assign({}, normalized, {
       year: yyyy,
@@ -383,6 +462,7 @@ const TransactionService = {
     const sheet = TransactionRepository.getSheet();
     const headerMap = TransactionRepository.getHeaderMap(sheet);
     const data = sheet.getDataRange().getValues();
+    const registeredCategories = CategoryRepository.getAll();
     
     let transactions = [];
     if (data.length > 1) {
@@ -415,10 +495,8 @@ const TransactionService = {
     let totalExpense = 0;
     let totalPaidIncome = 0;
     let totalPaidExpenses = 0;
-    const categoryLookup = {};
 
     transactions.forEach(t => {
-      categoryLookup[t.category || DEFAULT_CATEGORY] = true;
       if (t.type === 'INCOME') {
         totalIncome += t.amount;
         if (t.status === 'PAGO') {
@@ -444,7 +522,7 @@ const TransactionService = {
       expectedBalance: totalIncome - totalExpense,
       realizedBalance: totalPaidIncome - totalPaidExpenses,
       paidExpensePercent: totalExpense > 0 ? (totalPaidExpenses / totalExpense) * 100 : 0,
-      categories: Object.keys(categoryLookup).sort()
+      categories: registeredCategories
     };
   }
 };
@@ -457,3 +535,4 @@ function apiToggleTransactionStatus(id) { return TransactionService.toggleTransa
 function apiSetTransactionsStatus(ids, status) { return TransactionService.setTransactionsStatus(ids, status); }
 function apiDeleteTransaction(id) { return TransactionService.deleteTransaction(id); }
 function apiGetMonthlySummary(year, month) { return TransactionService.getMonthlySummary(year, month); }
+function apiGetCategories() { return CategoryRepository.getAll(); }
