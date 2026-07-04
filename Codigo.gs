@@ -4,6 +4,37 @@
  */
 
 const SHEET_NAME = 'Transactions';
+const TRANSACTION_HEADERS = [
+  'Id',
+  'Year',
+  'Month',
+  'Date',
+  'Type',
+  'Description',
+  'Amount',
+  'Status',
+  'Category',
+  'CreatedAt',
+  'UpdatedAt',
+  'SettledAt'
+];
+
+const HEADER_FIELD_MAP = {
+  Id: 'id',
+  Year: 'year',
+  Month: 'month',
+  Date: 'date',
+  Type: 'type',
+  Description: 'description',
+  Amount: 'amount',
+  Status: 'status',
+  Category: 'category',
+  CreatedAt: 'createdAt',
+  UpdatedAt: 'updatedAt',
+  SettledAt: 'settledAt'
+};
+
+const DEFAULT_CATEGORY = 'Geral';
 
 /**
  * Controller: Serves the main HTML page.
@@ -33,6 +64,18 @@ const DateUtils = {
       return `${yyyy}-${mm}-${dd}`;
     }
     return String(dateVal);
+  },
+
+  todayDateString: function() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  },
+
+  nowIsoString: function() {
+    return new Date().toISOString();
   }
 };
 
@@ -48,10 +91,50 @@ const TransactionRepository = {
     let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
     if (!sheet) {
       sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_NAME);
-      sheet.appendRow(['Id', 'Year', 'Month', 'Date', 'Type', 'Description', 'Amount', 'Status']);
-      sheet.getRange('1:1').setFontWeight('bold');
     }
+    this.ensureSchema(sheet);
     return sheet;
+  },
+
+  ensureSchema: function(sheet) {
+    const lastColumn = sheet.getLastColumn();
+    if (lastColumn === 0) {
+      sheet.getRange(1, 1, 1, TRANSACTION_HEADERS.length).setValues([TRANSACTION_HEADERS]);
+      sheet.getRange('1:1').setFontWeight('bold');
+      return;
+    }
+
+    const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0].map(String);
+    const missingHeaders = TRANSACTION_HEADERS.filter(header => headers.indexOf(header) === -1);
+    if (missingHeaders.length > 0) {
+      sheet.getRange(1, lastColumn + 1, 1, missingHeaders.length).setValues([missingHeaders]);
+    }
+    sheet.getRange('1:1').setFontWeight('bold');
+  },
+
+  getHeaderMap: function(sheet) {
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+    return headers.reduce((map, header, index) => {
+      map[header] = index;
+      return map;
+    }, {});
+  },
+
+  rowToTransaction: function(row, headerMap) {
+    return TRANSACTION_HEADERS.reduce((transaction, header) => {
+      const field = HEADER_FIELD_MAP[header];
+      const index = headerMap[header];
+      transaction[field] = index === undefined ? '' : row[index];
+      return transaction;
+    }, {});
+  },
+
+  buildRow: function(transaction) {
+    return TRANSACTION_HEADERS.map(header => {
+      const field = HEADER_FIELD_MAP[header];
+      if (field === 'amount') return Number(transaction[field]) || 0;
+      return transaction[field] || '';
+    });
   },
 
   /**
@@ -61,16 +144,7 @@ const TransactionRepository = {
   save: function(transaction) {
     const sheet = this.getSheet();
     const id = Utilities.getUuid();
-    sheet.appendRow([
-      id,
-      transaction.year,
-      transaction.month,
-      transaction.date,
-      transaction.type,
-      transaction.description,
-      transaction.amount,
-      'PENDENTE'
-    ]);
+    sheet.appendRow(this.buildRow(Object.assign({}, transaction, { id: id })));
   },
 
   /**
@@ -80,20 +154,15 @@ const TransactionRepository = {
    */
   update: function(id, transaction) {
     const sheet = this.getSheet();
+    const headerMap = this.getHeaderMap(sheet);
     const data = sheet.getDataRange().getValues();
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
+      if (data[i][headerMap.Id] === id) {
         const rowIndex = i + 1;
-        sheet.getRange(rowIndex, 2, 1, 7).setValues([[
-          transaction.year,
-          transaction.month,
-          transaction.date,
-          transaction.type, 
-          transaction.description, 
-          transaction.amount,
-          transaction.status
-        ]]);
+        const existing = this.rowToTransaction(data[i], headerMap);
+        const updated = Object.assign({}, existing, transaction, { id: id });
+        sheet.getRange(rowIndex, 1, 1, TRANSACTION_HEADERS.length).setValues([this.buildRow(updated)]);
         break;
       }
     }
@@ -106,19 +175,49 @@ const TransactionRepository = {
    */
   toggleStatus: function(id) {
     const sheet = this.getSheet();
+    const headerMap = this.getHeaderMap(sheet);
     const data = sheet.getDataRange().getValues();
     let newStatus = 'PENDENTE';
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
+      if (data[i][headerMap.Id] === id) {
         const rowIndex = i + 1;
-        const currentStatus = data[i][7] || 'PENDENTE';
+        const currentStatus = data[i][headerMap.Status] || 'PENDENTE';
         newStatus = currentStatus === 'PAGO' ? 'PENDENTE' : 'PAGO';
-        sheet.getRange(rowIndex, 8).setValue(newStatus);
+        const transaction = this.rowToTransaction(data[i], headerMap);
+        transaction.status = newStatus;
+        transaction.updatedAt = DateUtils.nowIsoString();
+        transaction.settledAt = newStatus === 'PAGO' ? DateUtils.todayDateString() : '';
+        sheet.getRange(rowIndex, 1, 1, TRANSACTION_HEADERS.length).setValues([this.buildRow(transaction)]);
         break;
       }
     }
     return newStatus;
+  },
+
+  setStatusForIds: function(ids, status) {
+    const sheet = this.getSheet();
+    const headerMap = this.getHeaderMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    const idLookup = ids.reduce((lookup, id) => {
+      lookup[id] = true;
+      return lookup;
+    }, {});
+    let updatedCount = 0;
+
+    for (let i = 1; i < data.length; i++) {
+      const id = data[i][headerMap.Id];
+      if (idLookup[id]) {
+        const transaction = this.rowToTransaction(data[i], headerMap);
+        transaction.status = status;
+        transaction.updatedAt = DateUtils.nowIsoString();
+        transaction.settledAt = status === 'PAGO' ? DateUtils.todayDateString() : '';
+        sheet.getRange(i + 1, 1, 1, TRANSACTION_HEADERS.length).setValues([this.buildRow(transaction)]);
+        updatedCount++;
+      }
+    }
+
+    return updatedCount;
   },
 
   /**
@@ -127,10 +226,11 @@ const TransactionRepository = {
    */
   delete: function(id) {
     const sheet = this.getSheet();
+    const headerMap = this.getHeaderMap(sheet);
     const data = sheet.getDataRange().getValues();
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
+      if (data[i][headerMap.Id] === id) {
         sheet.deleteRow(i + 1);
         break;
       }
@@ -142,6 +242,40 @@ const TransactionRepository = {
  * Service Layer: Encapsulates business logic, including date parsing, recurrence, and aggregation.
  */
 const TransactionService = {
+  normalizeTransactionInput: function(data) {
+    const date = String(data.date || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error('Informe uma data válida.');
+    }
+
+    const type = String(data.type || '').trim();
+    if (type !== 'INCOME' && type !== 'EXPENSE') {
+      throw new Error('Informe um tipo válido.');
+    }
+
+    const description = String(data.description || '').trim();
+    if (!description) {
+      throw new Error('Informe uma descrição.');
+    }
+
+    const amount = Number(data.amount);
+    if (!isFinite(amount) || amount <= 0) {
+      throw new Error('Informe um valor maior que zero.');
+    }
+
+    const status = data.status === 'PAGO' ? 'PAGO' : 'PENDENTE';
+    const category = String(data.category || DEFAULT_CATEGORY).trim() || DEFAULT_CATEGORY;
+
+    return {
+      date: date,
+      type: type,
+      description: description,
+      amount: amount,
+      status: status,
+      category: category
+    };
+  },
+
   /**
    * Validates and routes a new transaction (or multiple, if recurring) to the repository.
    * @param {Object} data - Raw transaction data from the frontend.
@@ -149,11 +283,16 @@ const TransactionService = {
    */
   addTransaction: function(data) {
     const recurrenceCount = parseInt(data.recurrence, 10) || 1;
+    if (recurrenceCount < 1 || recurrenceCount > 120) {
+      throw new Error('A repetição deve ficar entre 1 e 120 meses.');
+    }
+    const normalized = this.normalizeTransactionInput(data);
     
-    const [yyyy, mm, dd] = data.date.split('-');
+    const [yyyy, mm, dd] = normalized.date.split('-');
     const baseYear = parseInt(yyyy, 10);
     const baseMonth = parseInt(mm, 10) - 1; 
     const day = parseInt(dd, 10);
+    const nowIso = DateUtils.nowIsoString();
 
     for (let i = 0; i < recurrenceCount; i++) {
       let currentD = new Date(baseYear, baseMonth + i, day);
@@ -170,9 +309,14 @@ const TransactionService = {
         date: tDateStr,
         year: tYear,
         month: tMonth,
-        type: data.type,
-        description: data.description,
-        amount: data.amount
+        type: normalized.type,
+        description: normalized.description,
+        amount: normalized.amount,
+        status: 'PENDENTE',
+        category: normalized.category,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+        settledAt: ''
       };
 
       TransactionRepository.save(transactionPayload);
@@ -187,11 +331,15 @@ const TransactionService = {
    * @returns {Object} A standardized success response.
    */
   updateTransaction: function(data) {
-    const [yyyy, mm] = data.date.split('-');
-    data.year = yyyy;
-    data.month = mm;
+    const normalized = this.normalizeTransactionInput(data);
+    const [yyyy, mm] = normalized.date.split('-');
+    const transaction = Object.assign({}, normalized, {
+      year: yyyy,
+      month: mm,
+      updatedAt: DateUtils.nowIsoString()
+    });
     
-    TransactionRepository.update(data.id, data);
+    TransactionRepository.update(data.id, transaction);
     return { success: true };
   },
 
@@ -215,6 +363,15 @@ const TransactionService = {
     return { success: true };
   },
 
+  setTransactionsStatus: function(ids, status) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error('Selecione pelo menos um registro.');
+    }
+    const normalizedStatus = status === 'PAGO' ? 'PAGO' : 'PENDENTE';
+    const updatedCount = TransactionRepository.setStatusForIds(ids, normalizedStatus);
+    return { success: true, updatedCount: updatedCount };
+  },
+
   /**
    * Aggregates transactions to compute monthly predictability metrics.
    * Normalizes values and sorts the result chronologically in ascending order.
@@ -224,6 +381,7 @@ const TransactionService = {
    */
   getMonthlySummary: function(year, month) {
     const sheet = TransactionRepository.getSheet();
+    const headerMap = TransactionRepository.getHeaderMap(sheet);
     const data = sheet.getDataRange().getValues();
     
     let transactions = [];
@@ -233,16 +391,19 @@ const TransactionService = {
       
       transactions = data.slice(1)
         .map(row => {
-          const normalizedDate = DateUtils.formatSheetDate(row[3]);
+          const item = TransactionRepository.rowToTransaction(row, headerMap);
+          const normalizedDate = DateUtils.formatSheetDate(item.date);
           return {
-            id: row[0],
-            year: String(row[1]),
-            month: String(row[2]).padStart(2, '0'),
+            id: item.id,
+            year: String(item.year),
+            month: String(item.month).padStart(2, '0'),
             date: normalizedDate, 
-            type: row[4],
-            description: row[5],
-            amount: Number(row[6]),
-            status: row[7] || 'PENDENTE'
+            type: item.type,
+            description: item.description,
+            amount: Number(item.amount),
+            status: item.status || 'PENDENTE',
+            category: item.category || DEFAULT_CATEGORY,
+            settledAt: DateUtils.formatSheetDate(item.settledAt || '')
           };
         })
         .filter(item => item.year === targetYear && item.month === paddedMonth);
@@ -252,10 +413,18 @@ const TransactionService = {
 
     let totalIncome = 0;
     let totalExpense = 0;
+    let totalPaidIncome = 0;
     let totalPaidExpenses = 0;
+    const categoryLookup = {};
 
     transactions.forEach(t => {
-      if (t.type === 'INCOME') totalIncome += t.amount;
+      categoryLookup[t.category || DEFAULT_CATEGORY] = true;
+      if (t.type === 'INCOME') {
+        totalIncome += t.amount;
+        if (t.status === 'PAGO') {
+          totalPaidIncome += t.amount;
+        }
+      }
       if (t.type === 'EXPENSE') {
         totalExpense += t.amount;
         if (t.status === 'PAGO') {
@@ -268,8 +437,14 @@ const TransactionService = {
       transactions: transactions,
       totalIncome: totalIncome,
       totalExpense: totalExpense,
+      totalPaidIncome: totalPaidIncome,
       totalPaidExpenses: totalPaidExpenses,
-      expectedBalance: totalIncome - totalExpense
+      pendingIncome: totalIncome - totalPaidIncome,
+      pendingExpenses: totalExpense - totalPaidExpenses,
+      expectedBalance: totalIncome - totalExpense,
+      realizedBalance: totalPaidIncome - totalPaidExpenses,
+      paidExpensePercent: totalExpense > 0 ? (totalPaidExpenses / totalExpense) * 100 : 0,
+      categories: Object.keys(categoryLookup).sort()
     };
   }
 };
@@ -279,5 +454,6 @@ const TransactionService = {
 function apiAddTransaction(data) { return TransactionService.addTransaction(data); }
 function apiUpdateTransaction(data) { return TransactionService.updateTransaction(data); }
 function apiToggleTransactionStatus(id) { return TransactionService.toggleTransactionStatus(id); }
+function apiSetTransactionsStatus(ids, status) { return TransactionService.setTransactionsStatus(ids, status); }
 function apiDeleteTransaction(id) { return TransactionService.deleteTransaction(id); }
 function apiGetMonthlySummary(year, month) { return TransactionService.getMonthlySummary(year, month); }

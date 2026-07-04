@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "test": "node --test --test-reporter=spec",
+    "check": "node --check --input-type=commonjs < Codigo.gs && node --check test/codigo.test.js"
+  },
+  "devDependencies": {}
+}
