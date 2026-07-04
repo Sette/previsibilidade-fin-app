@@ -337,6 +337,65 @@
     .notice.success { border-color: var(--success); color: var(--success); }
     .notice.error { border-color: var(--danger); color: var(--danger); }
 
+    .load-status {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      z-index: 30;
+      width: min(360px, calc(100vw - 36px));
+      margin: 0;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      box-shadow: var(--shadow);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(-2px);
+      transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .load-status.visible {
+      display: inline-flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .load-status.loading {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .load-status.success {
+      color: var(--success);
+      border-color: var(--success);
+    }
+
+    .load-status.error {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .load-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .view-tabs {
       display: flex;
       gap: 8px;
@@ -878,6 +937,17 @@
         align-items: stretch;
       }
       .recurrence-suffix { margin-top: -4px; }
+      .load-status {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        width: auto;
+        max-width: none;
+        justify-content: center;
+        text-align: center;
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -914,6 +984,8 @@
         <button onclick="loadDashboard()">Carregar mês</button>
       </div>
     </div>
+
+    <div id="loadStatus" class="load-status" aria-live="polite"></div>
 
     <div id="notice" class="notice" role="status" aria-live="polite"></div>
 
@@ -1150,6 +1222,38 @@
       showNotice.timeoutId = window.setTimeout(() => {
         notice.style.display = 'none';
       }, 3800);
+    }
+
+    function setLoadStatus(state, message) {
+      const loadStatus = document.getElementById('loadStatus');
+      window.clearTimeout(setLoadStatus.timeoutId);
+      loadStatus.className = 'load-status';
+      loadStatus.innerHTML = '';
+
+      if (!state) {
+        return;
+      }
+
+      loadStatus.classList.add(state, 'visible');
+      if (state === 'loading') {
+        const spinner = document.createElement('span');
+        spinner.className = 'load-spinner';
+        spinner.setAttribute('aria-hidden', 'true');
+        loadStatus.appendChild(spinner);
+      }
+
+      const label = document.createElement('span');
+      label.textContent = message;
+      loadStatus.appendChild(label);
+    }
+
+    function getMonthLabel(monthValue) {
+      const meses = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ];
+      const index = Number(monthValue) - 1;
+      return meses[index] || String(monthValue);
     }
 
     function showView(view) {
@@ -1858,6 +1962,7 @@
       const month = document.getElementById('filterMonth').value;
       const year = document.getElementById('filterYear').value;
 
+      setLoadStatus('loading', 'Carregando dados...');
       document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="8" class="empty-state">Carregando...</td></tr>';
       document.getElementById('categorySummaryBody').innerHTML = '<tr><td colspan="8" class="empty-state">Carregando saldos por categoria...</td></tr>';
       setChartEmpty(document.getElementById('expenseChart'), 'Carregando gráfico...');
@@ -1885,8 +1990,13 @@
           renderCategorySummaries(summary.categorySummaries || []);
           renderCharts(summary.categorySummaries || []);
           applyTableFilters();
+          setLoadStatus('success', `Dados atualizados: ${getMonthLabel(month)} ${year}`);
+          setLoadStatus.timeoutId = window.setTimeout(() => {
+            setLoadStatus(null);
+          }, 2200);
         })
         .withFailureHandler((err) => {
+          setLoadStatus('error', 'Falha ao carregar os dados');
           showNotice('Erro: ' + err.message, 'error');
           currentTransactions = [];
           currentFilteredTransactions = [];
