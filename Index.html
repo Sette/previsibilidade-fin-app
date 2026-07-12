@@ -1069,7 +1069,7 @@
           <input type="text" id="category" class="category-input" list="categoryOptions" placeholder="Categoria" value="Geral">
           <datalist id="categoryOptions"></datalist>
           <input type="text" id="description" class="description-input" placeholder="Descrição (ex: Salário, Aluguel)" required>
-          <input type="number" id="amount" class="amount-input" placeholder="Valor" step="0.01" required>
+          <input type="text" id="amount" class="amount-input" placeholder="Valor" inputmode="decimal" autocomplete="off" required>
         </div>
         <div class="form-group">
           <div id="recurrenceWrapper" class="recurrence-controls">
@@ -1364,6 +1364,32 @@
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     }
 
+    function formatAmountInput(value) {
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(Number(value) || 0);
+    }
+
+    function parseAmountInput(value) {
+      const rawValue = String(value || '').trim();
+      if (!rawValue) return NaN;
+
+      const normalizedValue = rawValue
+        .replace(/\s/g, '')
+        .replace(/[Rr$]/g, '');
+
+      if (normalizedValue.includes(',')) {
+        return Number(normalizedValue.replace(/\./g, '').replace(',', '.'));
+      }
+
+      if (/^\d{1,3}(\.\d{3})+$/.test(normalizedValue)) {
+        return Number(normalizedValue.replace(/\./g, ''));
+      }
+
+      return Number(normalizedValue);
+    }
+
     /**
      * Formats date for table display safely without timezone distortion.
      */
@@ -1446,7 +1472,7 @@
       const transaction = currentTransactions.find(item => item.id === id);
       document.getElementById('category').value = transaction ? transaction.category : 'Geral';
       document.getElementById('description').value = description;
-      document.getElementById('amount').value = amount;
+      document.getElementById('amount').value = formatAmountInput(amount);
       
       document.getElementById('formTitle').innerText = 'Editar Registro';
       document.getElementById('submitBtn').innerText = 'Atualizar Registro';
@@ -1527,7 +1553,7 @@
       const type = document.getElementById('type').value;
       const category = (document.getElementById('category').value || 'Geral').trim();
       const description = document.getElementById('description').value;
-      const amount = parseFloat(document.getElementById('amount').value);
+      const amount = parseAmountInput(document.getElementById('amount').value);
       const recurrence = parseInt(document.getElementById('recurrence').value, 10);
 
       if (!date || !description || isNaN(amount)) {

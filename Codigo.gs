@@ -319,6 +319,27 @@ const CategoryRepository = {
  * Service Layer: Encapsulates business logic, including date parsing, recurrence, and aggregation.
  */
 const TransactionService = {
+  parseAmount: function(value) {
+    if (typeof value === 'number') return value;
+
+    const rawValue = String(value || '').trim();
+    if (!rawValue) return NaN;
+
+    const normalizedValue = rawValue
+      .replace(/\s/g, '')
+      .replace(/[Rr$]/g, '');
+
+    if (normalizedValue.indexOf(',') >= 0) {
+      return Number(normalizedValue.replace(/\./g, '').replace(',', '.'));
+    }
+
+    if (/^\d{1,3}(\.\d{3})+$/.test(normalizedValue)) {
+      return Number(normalizedValue.replace(/\./g, ''));
+    }
+
+    return Number(normalizedValue);
+  },
+
   normalizeTransactionInput: function(data) {
     const date = String(data.date || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -335,7 +356,7 @@ const TransactionService = {
       throw new Error('Informe uma descrição.');
     }
 
-    const amount = Number(data.amount);
+    const amount = this.parseAmount(data.amount);
     if (!isFinite(amount) || amount <= 0) {
       throw new Error('Informe um valor maior que zero.');
     }
