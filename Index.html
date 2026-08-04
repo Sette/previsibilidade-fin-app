@@ -868,6 +868,8 @@
         display: block;
         text-align: left;
         white-space: normal;
+        order: 8;
+        padding-top: 4px;
       }
 
       td[data-label="Ações"]::before {
@@ -891,6 +893,9 @@
         justify-content: flex-start;
         align-items: center;
         min-height: 38px;
+        order: 7;
+        border-bottom: 0;
+        padding-bottom: 4px;
       }
 
       td[data-label="Descrição"] {
@@ -1064,7 +1069,7 @@
           <input type="date" id="recordDate" required title="Data do Vencimento/Recebimento">
           <select id="type">
             <option value="INCOME">Receita</option>
-            <option value="EXPENSE">Despesa</option>
+            <option value="EXPENSE" selected>Despesa</option>
           </select>
           <input type="text" id="category" class="category-input" list="categoryOptions" placeholder="Categoria" value="Geral">
           <datalist id="categoryOptions"></datalist>
@@ -1173,7 +1178,7 @@
     let currentEditId = null;
     let currentEditStatus = 'PENDENTE';
     let lastAddDate = '';
-    let lastAddType = 'INCOME';
+    let lastAddType = 'EXPENSE';
     let lastAddCategory = 'Geral';
     let currentTransactions = [];
     let currentFilteredTransactions = [];
@@ -1463,7 +1468,7 @@
       currentEditId = null;
       currentEditStatus = 'PENDENTE';
       restoreLastAddDate();
-      document.getElementById('type').value = lastAddType || 'INCOME';
+      document.getElementById('type').value = lastAddType || 'EXPENSE';
       document.getElementById('category').value = lastAddCategory || 'Geral';
       document.getElementById('description').value = '';
       document.getElementById('amount').value = '';
@@ -1482,7 +1487,7 @@
       }
 
       restoreLastAddDate();
-      document.getElementById('type').value = lastAddType || 'INCOME';
+      document.getElementById('type').value = lastAddType || 'EXPENSE';
       document.getElementById('category').value = lastAddCategory || 'Geral';
       document.getElementById('description').value = '';
       document.getElementById('amount').value = '';
